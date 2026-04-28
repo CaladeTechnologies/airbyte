@@ -139,7 +139,7 @@ The connector silently skips any group, project, or resource that returns an HTT
 
 | Version | Date       | Pull Request                                             | Subject                                                                                                                                                                            |
 | :------ | :--------- | :------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 4.4.27 | 2026-04-28 | [TBD](https://github.com/airbytehq/airbyte/pull/TBD) | Lower default concurrency from 8 to 4 and add 70% safety margins to HTTPAPIBudget rate limits to prevent 429 errors on large workspaces |
+| 4.4.27 | 2026-04-28 | [77516](https://github.com/airbytehq/airbyte/pull/77516) | Lower default concurrency from 8 to 4 and add 70% safety margins to HTTPAPIBudget rate limits to prevent 429 errors on large workspaces |
 | 4.4.26 | 2026-04-28 | [77265](https://github.com/airbytehq/airbyte/pull/77265) | Update dependencies |
 | 4.4.25 | 2026-04-21 | [76608](https://github.com/airbytehq/airbyte/pull/76608) | Update dependencies |
 | 4.4.24 | 2026-04-13 | [76276](https://github.com/airbytehq/airbyte/pull/76276) | Rename "concurrent workers" to "concurrent threads" in connector spec |
