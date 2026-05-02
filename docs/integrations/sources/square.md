@@ -103,7 +103,7 @@ Exponential [Backoff](https://developer.squareup.com/forums/t/current-square-api
 
 | Version | Date       | Pull Request                                             | Subject                                                                   |
 | :------ | :--------- | :------------------------------------------------------- | :------------------------------------------------------------------------ |
-| 1.7.16 | 2026-05-02 | [PR_NUMBER_PLACEHOLDER](https://github.com/airbytehq/airbyte/pull/PR_NUMBER_PLACEHOLDER) | Fix `orders` stream pagination — was silently capping at 500 records per location partition; now follows Square's `cursor` to fetch all pages |
+| 1.7.16 | 2026-05-02 | [77704](https://github.com/airbytehq/airbyte/pull/77704) | Fix `orders` stream pagination — was silently capping at 500 records per location partition; now follows Square's `cursor` to fetch all pages |
 | 1.7.15 | 2026-04-28 | [77463](https://github.com/airbytehq/airbyte/pull/77463) | Update dependencies |
 | 1.7.14 | 2026-04-21 | [75866](https://github.com/airbytehq/airbyte/pull/75866) | Update dependencies |
 | 1.7.13 | 2026-03-17 | [75101](https://github.com/airbytehq/airbyte/pull/75101) | Update dependencies |
