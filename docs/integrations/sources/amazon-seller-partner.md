@@ -62,7 +62,7 @@ To pass the check for Seller and Vendor accounts, you must have access to the [O
 
 <!-- env:cloud -->
 
-#### For Airbyte Cloud:
+#### For Airbyte Cloud
 
 1. [Log into your Airbyte Cloud](https://cloud.airbyte.com/workspaces) account.
 2. Click Sources and then click + New source.
@@ -90,7 +90,7 @@ To pass the check for Seller and Vendor accounts, you must have access to the [O
 
 <!-- env:oss -->
 
-#### For Airbyte Open Source:
+#### For Airbyte Open Source
 
 1. Navigate to the Airbyte Open Source dashboard.
 2. On the Set up the source page, select Amazon Seller Partner from the Source type dropdown.
@@ -179,6 +179,7 @@ The Amazon Seller Partner source connector supports the following [sync modes](h
 <HideInUI>
 
 ### Entity-Relationship Diagram (ERD)
+
 <EntityRelationshipDiagram></EntityRelationshipDiagram>
 </HideInUI>
 
