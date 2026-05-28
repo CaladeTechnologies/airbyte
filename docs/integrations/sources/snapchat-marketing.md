@@ -1,6 +1,6 @@
 # Snapchat Marketing
 
-This page guides you through the process of setting up the [Snapchat Marketing](https://marketingapi.snapchat.com/docs/) source connector.
+This page contains the setup guide and reference information for the [Snapchat Marketing](https://developers.snap.com/api/marketing-api/Ads-API/quick-start) source connector.
 
 ## Prerequisites
 
@@ -8,16 +8,19 @@ This page guides you through the process of setting up the [Snapchat Marketing](
 
 **For Airbyte Cloud:**
 
-- An existing Snapchat Marketing business account
+- A Snapchat Business account with access to the ad accounts you want to sync.
+
 <!-- /env:cloud -->
 
 <!-- env:oss -->
 
 **For Airbyte Open Source:**
 
-- Client ID
-- Client Secret
-- Refresh Token
+- A Snapchat Business account with access to the ad accounts you want to sync.
+- A Snapchat OAuth app in Snap Business Manager. You must be an Organization Admin to create an app.
+- Access to the `snapchat-marketing-api` OAuth scope.
+- Your OAuth app's client ID and client secret.
+- A refresh token generated through Snapchat's OAuth 2.0 authorization code flow.
 
 <!-- /env:oss -->
 
@@ -25,41 +28,38 @@ This page guides you through the process of setting up the [Snapchat Marketing](
 
 ### Step 1: Set up Snapchat
 
-1. [Set up a Snapchat Business account](https://businesshelp.snapchat.com/s/article/get-started?language=en_US)
+1. [Set up a Snapchat Business account](https://businesshelp.snapchat.com/s/article/get-started?language=en_US).
 
 <!-- env:oss -->
 
 **For Airbyte Open Source:**
 
-2. [Activate Access to the Snapchat Marketing API](https://businesshelp.snapchat.com/s/article/api-apply?language=en_US)
-3. Add the OAuth2 app:
-   - Adding the OAuth2 app requires the `redirect_url` parameter.
-     - If you have the API endpoint that will handle next OAuth process, write it to this parameter.
-     - If you do not have the API endpoint, simply use a valid URL.Refer to the discussion here for more information: [Snapchat Redirect URL - Clarity in documentation please](https://github.com/Snap-Kit/bitmoji-sample/issues/3)
-   - Save the **Client ID** and **Client Secret**
-4. Obtain a refresh token using OAuth2 authentication workflow.
-   - Open the authorize link in a browser. It will look similar to this:
-   ```
-   https://accounts.snapchat.com/login/oauth2/authorize?response_type=code&client_id=CLIENT_ID&redirect_uri=REDIRECT_URI&scope=snapchat-marketing-api&state=wmKkg0TWgppW8PTBZ20sldUwerf-m
-   ```
-   - Login & Authorize via UI
-   - Locate the `code` query parameter in the redirect
-   - Exchange the `code` for an access token and refresh token.
+2. [Apply for access to the Snapchat Marketing API](https://businesshelp.snapchat.com/s/article/api-apply?language=en_US), if your account doesn't already have access.
+3. Create an OAuth app in Snap Business Manager and save the **Client ID** and **Client Secret**. The app must use a redirect URI that exactly matches the `redirect_uri` value you use in the authorization request.
+4. Get a refresh token with the OAuth 2.0 authorization code flow:
+   - Open the authorization URL in a browser. It should look similar to this:
+
+     ```text
+     https://accounts.snapchat.com/login/oauth2/authorize?response_type=code&client_id=CLIENT_ID&redirect_uri=REDIRECT_URI&scope=snapchat-marketing-api&state=STATE
+     ```
+
+   - Log in to Snapchat and authorize the app.
+   - Copy the `code` query parameter from the redirect URL.
+   - Exchange the code for an access token and refresh token.
 
    Your request will appear similar to the following:
 
    ```text
-      curl -X POST \
-      -d "code={one_time_use_code}" \
-      -d "client_id={client_id}" \
-      -d "client_secret={client_secret}"  \
-      -d "grant_type=authorization_code"  \
-      -d "redirect_uri=redirect_uri"
-      https://accounts.snapchat.com/login/oauth2/access_token`
+   curl -X POST https://accounts.snapchat.com/login/oauth2/access_token \
+     -d "grant_type=authorization_code" \
+     -d "client_id={client_id}" \
+     -d "client_secret={client_secret}" \
+     -d "code={one_time_use_code}" \
+     -d "redirect_uri={redirect_uri}"
    ```
 
-For more information on authenticating into the Snapchat API, read their documentation [here](https://marketingapi.snapchat.com/docs/#authentication)
-   You will receive the API key and refresh token in the response. Use this refresh token for the connector.
+   Use the `refresh_token` value from the response in the Airbyte source configuration. For more information, see Snapchat's [Authentication documentation](https://developers.snap.com/api/marketing-api/Ads-API/authentication).
+
    <!-- /env:oss -->
 
 ### Step 2: Set up the source connector in Airbyte
@@ -71,18 +71,19 @@ For more information on authenticating into the Snapchat API, read their documen
 1. [Log into your Airbyte Cloud](https://cloud.airbyte.com/workspaces) account.
 2. In the left navigation bar, click **Sources**. In the top-right corner, click **+ new source**.
 3. On the source setup page, select **Snapchat Marketing** from the Source type dropdown and enter a name for this connector.
-4. Click `Authenticate your account`.
-5. In the authentication window, log in and authorize access to your Snapchat account
+4. Click **Authenticate your account**.
+5. In the authentication window, log in and authorize access to your Snapchat account.
 6. (Optional) Choose a Start Date. All data created on or after this date will be synced. If left blank, all records will be synced.
 
 :::tip
-The `Start Date` is required for the all streams that use `start_time` as a key (see Supported Streams section below).
+The **Start Date** is required for all streams that use `start_time` as a cursor. See [Supported streams and sync modes](#supported-streams-and-sync-modes).
 :::
 7. (Optional) Choose an End Date. All data created on or before this date will be synced. If left blank, all records will be synced.
-8. (Optional) Choose the `Action Report Time`, which specifies how conversions are reported. The default is set to `conversion`, and can be modified to `impression`.
-9. (Optional) Choose the 'Swip Up Attribution Window', which specifies the length of the attribution window for swipe up actions. The default is 28 days and can be adjusted.
-10. (Optional) Choose the `View Attribution Window`, which specifies the length of the attribution window for views. The default is 28 days and can be adjusted.
-11. Click 'Set up source'
+8. (Optional) Choose the **Action Report Time**, which specifies whether conversion metrics are reported by conversion time or impression time. The default is `conversion`.
+9. (Optional) Choose the **Swipe Up Attribution Window**, which specifies the attribution window for swipe up actions. The default is `28_DAY`.
+10. (Optional) Choose the **View Attribution Window**, which specifies the attribution window for views. The default is `1_DAY`. To disable view-through attribution, choose `none`.
+11. Click **Set up source**.
+
 <!-- /env:cloud -->
 
 <!-- env:oss -->
@@ -96,49 +97,73 @@ The `Start Date` is required for the all streams that use `start_time` as a key 
 5. (Optional) Choose a Start Date. All data created on or after this date will be synced. If left blank, all records will be synced.
 
 :::tip
-The `Start Date` is required for the all streams that use `start_time` as a key (see Supported Streams section below).
+The **Start Date** is required for all streams that use `start_time` as a cursor. See [Supported streams and sync modes](#supported-streams-and-sync-modes).
 :::
 6. (Optional) Choose an End Date. All data created on or before this date will be synced.
-7. (Optional) Choose the `Action Report Time`, which specifies how conversions are reported. The default is set to `conversion`, and can be modified to `impression`.
-8. (Optional) Choose the 'Swip Up Attribution Window', which specifies the length of the attribution window for swipe up actions. The default is 28 days and can be adjusted.
-9. (Optional) Choose the `View Attribution Window`, which specifies the length of the attribution window for views. The default is 28 days and can be adjusted.
-10. Click 'Set up source'
+7. (Optional) Choose the **Action Report Time**, which specifies whether conversion metrics are reported by conversion time or impression time. The default is `conversion`.
+8. (Optional) Choose the **Swipe Up Attribution Window**, which specifies the attribution window for swipe up actions. The default is `28_DAY`.
+9. (Optional) Choose the **View Attribution Window**, which specifies the attribution window for views. The default is `1_DAY`. To disable view-through attribution, choose `none`.
+10. Click **Set up source**.
+
 <!-- /env:oss -->
 
 ## Supported streams and sync modes
 
-| Stream                  | Incremental | Key                                 |
-|:------------------------|:------------|-------------------------------------|
-| AdAccounts              | Yes         | "id"                                |
-| Ads                     | Yes         | "id"                                |
-| AdSquads                | Yes         | "id"                                |
-| Campaigns               | Yes         | "id"                                |
-| Creatives               | Yes         | "id"                                |
-| Media                   | Yes         | "id"                                |
-| Organizations           | Yes         | "id"                                |
-| Segments                | Yes         | "id"                                |
-| AdAccounts_Stats_Hourly   | Yes         | ["id", "granularity", "start_time"] |
-| AdAccounts_Stats_Daily    | Yes         | ["id", "granularity", "start_time"] |
-| AdAccounts_Stats_Lifetime | No          | ["id", "granularity"]               |
-| Ads_Stats_Hourly          | Yes         | ["id", "granularity", "start_time"] |
-| Ads_Stats_Daily           | Yes         | ["id", "granularity", "start_time"] |
-| Ads_Stats_Lifetime        | No          | ["id", "granularity"]               |
-| AdSquads_Stats_Hourly     | Yes         | ["id", "granularity", "start_time"] |
-| AdSquads_Stats_Daily      | Yes         | ["id", "granularity", "start_time"] |
-| AdSquads_Stats_Lifetime   | No          | ["id", "granularity"]               |
-| Campaigns_Stats_Hourly    | Yes         | ["id", "granularity", "start_time"] |
-| Campaigns_Stats_Daily     | Yes         | ["id", "granularity", "start_time"] |
-| Campaigns_Stats_Lifetime  | No          | ["id", "granularity"]               |
+| Stream | Sync mode | Primary key | Cursor field |
+| :--- | :--- | :--- | :--- |
+| `organizations` | Incremental | `id` | `updated_at` |
+| `adaccounts` | Incremental | `id` | `updated_at` |
+| `ads` | Incremental | `id` | `updated_at` |
+| `adsquads` | Incremental | `id` | `updated_at` |
+| `campaigns` | Incremental | `id` | `updated_at` |
+| `creatives` | Incremental | `id` | `updated_at` |
+| `media` | Incremental | `id` | `updated_at` |
+| `segments` | Incremental | `id` | `updated_at` |
+| `adaccounts_stats_hourly` | Incremental | `id`, `granularity`, `start_time` | `start_time` |
+| `adaccounts_stats_daily` | Incremental | `id`, `granularity`, `start_time` | `start_time` |
+| `adaccounts_stats_lifetime` | Full Refresh | `id`, `granularity` | None |
+| `ads_stats_hourly` | Incremental | `id`, `granularity`, `start_time` | `start_time` |
+| `ads_stats_daily` | Incremental | `id`, `granularity`, `start_time` | `start_time` |
+| `ads_stats_lifetime` | Full Refresh | `id`, `granularity` | None |
+| `adsquads_stats_hourly` | Incremental | `id`, `granularity`, `start_time` | `start_time` |
+| `adsquads_stats_daily` | Incremental | `id`, `granularity`, `start_time` | `start_time` |
+| `adsquads_stats_lifetime` | Full Refresh | `id`, `granularity` | None |
+| `campaigns_stats_hourly` | Incremental | `id`, `granularity`, `start_time` | `start_time` |
+| `campaigns_stats_daily` | Incremental | `id`, `granularity`, `start_time` | `start_time` |
+| `campaigns_stats_lifetime` | Full Refresh | `id`, `granularity` | None |
+
+Entity streams read organizations, ad accounts, ads, ad squads, campaigns, creatives, media, and segments from the Snapchat Marketing API. Stats streams read measurement data for ad accounts, ads, ad squads, and campaigns at hourly, daily, and lifetime granularities.
 
 ## Performance considerations
 
-The Snapchat Marketing API limits requests to 1,000 items per page.
+The Snapchat Marketing API limits requests to 1,000 items per page. Snapchat also applies rate limits at both the app and token level. Apps can average 20 requests per second, and individual access tokens can average 10 requests per second.
 
-Syncing data with an hourly granularity often generates large data volumes and can take longer times to sync. We recommend syncing at a day granularity.
+The connector is configured to stay within Snapchat's 10 requests per second token limit and retries requests that receive a `429 Too Many Requests` response.
+
+Syncing data with an hourly granularity often generates large data volumes and can take longer to sync. If you don't need hourly metrics, use the daily stats streams instead.
 
 ## IP allow list
 
 If you use Airbyte Cloud and your organization restricts access to specific IPs, add the [Airbyte Cloud IP addresses](https://docs.airbyte.com/platform/operating-airbyte/ip-allowlist) to your allow list.
+
+## Reference
+
+This connector uses Snapchat's [Ads API](https://developers.snap.com/api/marketing-api/Ads-API/quick-start). API requests use the `https://adsapi.snapchat.com/v1/` endpoint and authenticate with OAuth 2.0 access tokens refreshed from the configured refresh token.
+
+For programmatic configuration, use these parameter names:
+
+| Field | Required | Description |
+| :--- | :---: | :--- |
+| `client_id` | Yes | Client ID for your Snapchat OAuth app. |
+| `client_secret` | Yes | Client secret for your Snapchat OAuth app. |
+| `refresh_token` | Yes | Refresh token generated through Snapchat's OAuth 2.0 authorization code flow. |
+| `start_date` | No | Earliest date to replicate, in `YYYY-MM-DD` format. Defaults to `2022-01-01` in the connector spec. |
+| `end_date` | No | Latest date to replicate, in `YYYY-MM-DD` format. If omitted, the connector uses the day after the sync runs. |
+| `action_report_time` | No | Principle for reporting conversion metrics. Allowed values are `conversion` and `impression`. Defaults to `conversion`. |
+| `swipe_up_attribution_window` | No | Attribution window for swipe up actions. Allowed values are `1_DAY`, `7_DAY`, and `28_DAY`. Defaults to `28_DAY`. |
+| `view_attribution_window` | No | Attribution window for views. Allowed values are `none`, `1_HOUR`, `3_HOUR`, `6_HOUR`, `1_DAY`, and `7_DAY`. Defaults to `1_DAY`. Use `none` to disable view-through attribution. |
+| `organization_ids` | No | Organization IDs to retrieve. If omitted, the connector requests the organizations available to the authenticated user. |
+| `ad_account_ids` | No | Ad account IDs to retrieve. If omitted, the connector requests ad accounts under the selected organizations. |
 
 ## Changelog
 
@@ -147,7 +172,7 @@ If you use Airbyte Cloud and your organization restricts access to specific IPs,
 
 | Version    | Date       | Pull Request                                             | Subject                                                                        |
 |:-----------|:-----------|:---------------------------------------------------------|:-------------------------------------------------------------------------------|
-| 1.5.35 | 2026-05-26 | [74289](https://github.com/airbytehq/airbyte/pull/74289) | Add `none` option to view_attribution_window enum to support disabling view attribution tracking |
+| 1.5.35 | 2026-05-28 | [74289](https://github.com/airbytehq/airbyte/pull/74289) | Add `none` option to `view_attribution_window` enum to support disabling view attribution tracking |
 | 1.5.34 | 2026-04-28 | [76758](https://github.com/airbytehq/airbyte/pull/76758) | Update dependencies |
 | 1.5.33 | 2026-04-24 | [77006](https://github.com/airbytehq/airbyte/pull/77006) | Promoted release candidate to GA |
 | 1.5.33-rc.5 | 2026-04-23 | [76950](https://github.com/airbytehq/airbyte/pull/76950) | Re-enable api_budget at 100/10s with concurrency 4 for tuning iteration 5 |
