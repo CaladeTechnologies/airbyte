@@ -100,7 +100,7 @@ This source is capable of syncing the following streams:
 - [Sponsored Products Campaign Negative keywords](https://advertising.amazon.com/API/docs/en-us/sponsored-products/2-0/openapi#/Negative%20keywords)
 - [Sponsored Products Ads](https://advertising.amazon.com/API/docs/en-us/sponsored-products/2-0/openapi#/Product%20ads)
 - [Sponsored Products Targetings](https://advertising.amazon.com/API/docs/en-us/sponsored-products/2-0/openapi#/Product%20targeting)
-- [Sponsored Brands V3 Report](https://advertising.amazon.com/API/docs/en-us/guides/reporting/v3/report-types/overview) (Purchased Products, Campaigns, Ad Groups)
+- [Sponsored Brands Reports](https://advertising.amazon.com/API/docs/en-us/guides/reporting/v3/report-types/overview) (Purchased Products, Campaigns, Ad Groups)
 - Sponsored Display Reports (Campaigns, Ad Groups, Product Ads, Targets, ASINs)
 - Sponsored Products Reports (Campaigns, Ad Groups, Keywords, Targets, Product Ads, ASINs Keywords, ASINs Targets)
 - [Attribution Reports](https://advertising.amazon.com/API/docs/en-us/amazon-attribution-prod-3p/#/) (Products, Performance by Ad Group, Performance by Campaign, Performance by Creative)
@@ -129,10 +129,18 @@ Each report stream is available in two variants:
 
 For more information on time units, see the Amazon Ads documentation on [timeUnit and supported columns](https://advertising.amazon.com/API/docs/en-us/guides/reporting/v3/get-started#timeunit-and-supported-columns).
 
-Sponsored Brands campaign and ad group report streams use Amazon Ads V3 `sbCampaigns` and `sbAdGroup` reports to expose spend and performance metrics such as `cost`, `clicks`, `impressions`, `sales`, `purchases`, and `unitsSold`. The existing `sponsored_brands_v3_report_stream` and `sponsored_brands_v3_report_stream_daily` streams use `sbPurchasedProduct` for purchased-product attribution and do not include `cost`.
-
 **Important limitation**: Amazon may incorrectly detect duplicate report requests when syncing both summary and daily versions of the same report type simultaneously (for example, `sponsored_brands_v3_report_stream` and `sponsored_brands_v3_report_stream_daily`). If you encounter this issue, create a separate source with only the needed report streams and set the **Number of concurrent threads** to 2 to ensure sequential processing.
 :::
+
+### Sponsored Brands report types
+
+The connector provides three types of Sponsored Brands V3 reports, each backed by a different Amazon Ads `reportTypeId`:
+
+- **Purchased Products** (`sponsored_brands_v3_report_stream`): Uses `sbPurchasedProduct`. Provides purchased-product attribution data. Does not include spend metrics like `cost`.
+- **Campaigns** (`sponsored_brands_campaigns_report_stream`): Uses `sbCampaigns`. Provides campaign-level spend and performance metrics including `cost`, `clicks`, `impressions`, `sales`, `purchases`, and `unitsSold`.
+- **Ad Groups** (`sponsored_brands_adgroups_report_stream`): Uses `sbAdGroup`. Provides ad-group-level spend and performance metrics with the same columns as the campaigns report.
+
+If you need Sponsored Brands spend data (such as `cost`), enable the Campaigns or Ad Groups report streams. The Purchased Products stream does not include spend metrics.
 
 ## Performance considerations
 
@@ -170,7 +178,7 @@ If you use Airbyte Cloud and your organization restricts access to specific IPs,
 
 | Version    | Date       | Pull Request                                             | Subject                                                                                                                                                                |
 |:-----------|:-----------|:---------------------------------------------------------|:-----------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| 8.1.0 | 2026-05-28 | [78487](https://github.com/airbytehq/airbyte/pull/78487) | Added Sponsored Brands campaign and ad group report streams with spend and performance metrics. |
+| 8.1.0 | 2026-06-02 | [78487](https://github.com/airbytehq/airbyte/pull/78487) | Added Sponsored Brands campaign and ad group report streams with spend and performance metrics. |
 | 8.0.4 | 2026-06-02 | [78596](https://github.com/airbytehq/airbyte/pull/78596) | Update dependencies |
 | 8.0.3 | 2026-05-18 | [78162](https://github.com/airbytehq/airbyte/pull/78162) | Promoted release candidate to GA |
 | 8.0.3-rc.2 | 2026-05-12 | [78055](https://github.com/airbytehq/airbyte/pull/78055) | Concurrency tuning iteration 2: bump default `num_workers` from 12 to 14 for progressive rollout |
