@@ -520,10 +520,7 @@ class TestReportStartDateCapping:
 
         self._read(config_with_old_start, "sponsored_brands_v3_report_stream", SyncMode.incremental)
 
-        report_creation_requests = [
-            r for r in requests_mock.request_history
-            if r.method == "POST" and "/reporting/reports" in r.url
-        ]
+        report_creation_requests = [r for r in requests_mock.request_history if r.method == "POST" and "/reporting/reports" in r.url]
         assert len(report_creation_requests) > 0
 
         first_request_body = report_creation_requests[0].json()
@@ -558,10 +555,7 @@ class TestReportStartDateCapping:
 
         self._read(config_with_recent_start, "sponsored_brands_v3_report_stream", SyncMode.incremental)
 
-        report_creation_requests = [
-            r for r in requests_mock.request_history
-            if r.method == "POST" and "/reporting/reports" in r.url
-        ]
+        report_creation_requests = [r for r in requests_mock.request_history if r.method == "POST" and "/reporting/reports" in r.url]
         assert len(report_creation_requests) > 0
 
         first_request_body = report_creation_requests[0].json()
