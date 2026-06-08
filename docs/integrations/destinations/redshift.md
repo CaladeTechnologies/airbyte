@@ -208,8 +208,10 @@ Redshift enforces size limits on certain data types. When a value exceeds a limi
 the change in the `_airbyte_meta` column.
 
 - **VARCHAR**: Maximum 65,535 bytes.
-- **SUPER**: Maximum 16 MB per record. See the AWS documentation
-  on [SUPER type](https://docs.aws.amazon.com/redshift/latest/dg/r_SUPER_type.html)
+- **SUPER**: Maximum 16 MB per record. Individual string values nested inside a SUPER object or
+  array are also limited to 65,535 bytes (the VARCHAR maximum). If any nested string exceeds this
+  limit, the entire SUPER column is nullified and the change is recorded in `_airbyte_meta`. See the
+  AWS documentation on [SUPER type](https://docs.aws.amazon.com/redshift/latest/dg/r_SUPER_type.html)
   and [SUPER limitations](https://docs.aws.amazon.com/redshift/latest/dg/limitations-super.html).
 - **BIGINT**: Stores values in the range -2^63 to 2^63-1. If an integer value falls outside this range, Airbyte nulls
   the value and records the change in `_airbyte_meta`.
@@ -275,7 +277,7 @@ This destination supports [namespaces](https://docs.airbyte.com/platform/using-a
 
 | Version | Date       | Pull Request                                               | Subject                                                                                                                                                                                                          |
 |:--------|:-----------|:-----------------------------------------------------------|:-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| 4.0.2 | 2026-06-05 | [79161](https://github.com/airbytehq/airbyte/pull/79161) | fix(destination-redshift): validate nested string sizes within SUPER columns to prevent COPY error 1224 |
+| 4.0.2 | 2026-06-08 | [79161](https://github.com/airbytehq/airbyte/pull/79161) | Validate nested string sizes within SUPER columns to prevent COPY error 1224 |
 | 4.0.1 | 2026-06-04 | [79135](https://github.com/airbytehq/airbyte/pull/79135) | fix(destination-redshift): resolve sslmode/sslfactory conflict in jdbc_url_params |
 | 4.0.0 | 2026-06-02 | [79095](https://github.com/airbytehq/airbyte/pull/79095) | Full rewrite using direct load (removal of raw tables), pre-insertion data validation with `_airbyte_meta` tracking, updated dependencies: Redshift JDBC 2.2.7, AWS SDK v2 2.31.1 |
 | 3.5.4 | 2026-03-23 | [75286](https://github.com/airbytehq/airbyte/pull/75286) | Fix misleading SSH error when SQLException has null sqlState during connection check |
