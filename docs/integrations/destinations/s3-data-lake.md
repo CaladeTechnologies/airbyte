@@ -333,14 +333,19 @@ An unknown number of API sources have streams that don't meet these conditions. 
 
 Iceberg supports [Git-like semantics](https://iceberg.apache.org/docs/latest/branching/) over your data. This connector leverages those semantics to provide resilient syncs.
 
-- In each sync, each microbatch creates a new snapshot.
+- In each sync, each microbatch creates a new snapshot on a unique per-stream staging branch (`airbyte_staging_<uuid>`).
 
-- During truncate syncs, the connector writes the refreshed data to a unique `airbyte_staging_<uuid>` branch and replaces the `main` branch with that staging branch at the end of a successful sync. Since most query engines target the `main` branch, people can query your data until the end of a truncate sync, at which point it's atomically swapped to the new version. The connector removes the staging branch after a successful promotion, and preserves it after failed syncs so retries can recover staged data.
+- At the end of a successful sync, the connector atomically replaces the configured main branch (default `main`) with the staging branch, then removes the staging branch. If the sync fails, the staging branch is preserved so that retries can recover staged data.
+
+- During truncate syncs, this means query engines targeting the main branch continue to see the previous version of your data until the refresh completes and the atomic swap occurs.
 
 ### Branch replacement
 
-At the end of stream sync, we replace the current `main` branch with the unique staging branch we were working on. We intentionally avoid fast-forwarding to better handle potential compaction issues.
-**Important Warning**: Any changes made to the `main` branch outside of Airbyte's operations after a sync begins will be lost during this process.
+At the end of each stream sync, the connector replaces the configured main branch with the staging branch it was writing to. It intentionally avoids fast-forwarding to better handle potential compaction issues.
+
+:::warning
+Any changes made to the main branch outside of Airbyte's operations after a sync begins will be lost during this process.
+:::
 
 ## Compaction
 
@@ -395,11 +400,11 @@ This destination supports [namespaces](https://docs.airbyte.com/platform/using-a
 
 | Version     | Date       | Pull Request                                               | Subject                                                                                                                         |
 |:------------|:-----------|:-----------------------------------------------------------|:--------------------------------------------------------------------------------------------------------------------------------|
-| 0.3.50      | 2026-06-03 |                                                             | Use unique staging branches and clean them up after each sync.                                                                  |
+| 0.3.50      | 2026-06-08 | [79112](https://github.com/airbytehq/airbyte/pull/79112)   | Use unique staging branches and clean them up after each sync.                                                                  |
 | 0.3.49      | 2026-05-19 | [78232](https://github.com/airbytehq/airbyte/pull/78232)  | Upgrade CDK to 1.0.13 |
 | 0.3.48      | 2026-05-01 | [77677](https://github.com/airbytehq/airbyte/pull/77677)  | Add configurable flush batch size for aggregate publishing.                                                                     |
 | 0.3.47      | 2026-04-16 | [76410](https://github.com/airbytehq/airbyte/pull/76410) | Upgrade CDK to 1.0.9.                                                  |
-| 0.3.46      | 2026-03-30 |                                                           | Upgrade CDK to 1.0.7: fix sort order handling during schema evolution. |
+| 0.3.46      | 2026-03-30 | [75628](https://github.com/airbytehq/airbyte/pull/75628)   | Upgrade CDK to 1.0.7: fix sort order handling during schema evolution. |
 | 0.3.45      | 2026-03-12 | [74326](https://github.com/airbytehq/airbyte/pull/74326) | Upgrade CDK to 1.0.5: Number-type primary keys are now stored as String (enabling dedup on numeric PKs); fix schema evolution when replacing identifier columns |
 | 0.3.44      | 2026-02-04 | [72848](https://github.com/airbytehq/airbyte/pull/72848)   | Enable Speed.                                                                                                               |
 | 0.3.43      | 2026-01-29 | [72482](https://github.com/airbytehq/airbyte/pull/72482)   | Release on dataflow.                                                                                                            |
